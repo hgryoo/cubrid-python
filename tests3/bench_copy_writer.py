@@ -24,9 +24,8 @@ N = 50_000  # ~52 MB of payload
 def row_bytes(i):
     hdr = struct.pack("!h", 2)
     int_f = struct.pack("!i", 4) + struct.pack("!i", i)
-    vec_body = struct.pack("!i", DIM)
-    for k in range(DIM):
-        vec_body += struct.pack("!f", (i + k) * 0.001)
+    vec_body = (struct.pack("!i", DIM)
+                + struct.pack(f"<{DIM}f", *((i + k) * 0.001 for k in range(DIM))))
     vec_f = struct.pack("!i", len(vec_body)) + vec_body
     return hdr + int_f + vec_f
 

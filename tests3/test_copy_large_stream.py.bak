@@ -107,7 +107,7 @@ def run_chunked(conn, cur, n_rows, rows_per_send, table):
 
 
 def main():
-    dsn = "CUBRID:localhost:33000:testdb:::"
+    dsn = "CUBRID:localhost:33091:testdb:::"
     conn = CUBRIDdb.connect(dsn, "dba", "")
     conn.set_autocommit(False)
     cur = conn.cursor()

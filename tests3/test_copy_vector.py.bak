@@ -52,7 +52,7 @@ def build_binary_copy_payload(rows):
 
 
 def main():
-    dsn = "CUBRID:localhost:33000:testdb:::"
+    dsn = "CUBRID:localhost:33091:testdb:::"
     user = "dba"
     passwd = ""
 

@@ -141,7 +141,7 @@ def test_batch_many_tuples(conn, cur):
 
 
 def main():
-    dsn = "CUBRID:localhost:33000:testdb:::"
+    dsn = "CUBRID:localhost:33091:testdb:::"
     conn = CUBRIDdb.connect(dsn, "dba", "")
     conn.set_autocommit(False)
     cur = conn.cursor()
