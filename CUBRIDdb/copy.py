@@ -55,11 +55,28 @@ def _enc_varchar(v):
 
 
 def _enc_vector(v):
-    # v is a sequence of floats
-    body = struct.pack("!i", len(v))
-    for x in v:
-        body += struct.pack("!f", float(x))
+    # numpy fast path: big-endian float32 memcpy, no per-element Python work.
+    np = _numpy()
+    if np is not None and isinstance(v, np.ndarray):
+        b = np.ascontiguousarray(v, dtype=">f4").tobytes()
+        return struct.pack("!ii", 4 + len(b), len(v)) + b
+    n = len(v)
+    body = struct.pack(f"!i{n}f", n, *v)
     return struct.pack("!i", len(body)) + body
+
+
+def _numpy():
+    global _np_mod
+    try:
+        return _np_mod
+    except NameError:
+        pass
+    try:
+        import numpy as _np
+    except ImportError:
+        _np = None
+    globals()["_np_mod"] = _np
+    return _np
 
 
 _ENCODERS = {
@@ -198,7 +215,7 @@ class CopyWriter:
         row = bytearray(struct.pack("!h", len(values)))
         for v, enc in zip(values, self._encoders):
             row += _NULL_FIELD if v is None else enc(v)
-        self.write(bytes(row))
+        self.write(row)
 
     def write_rows(self, rows):
         """Write an iterable of tuples/lists. Convenience wrapper."""
