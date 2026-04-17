@@ -20,7 +20,7 @@ Usage:
 import struct
 
 
-DEFAULT_BUFFER_SIZE = 1 << 20   # 1 MiB per network flush
+DEFAULT_BUFFER_SIZE = 4 << 20   # 4 MiB per network flush
 
 
 # ----- wire-format primitives ---------------------------------------------
@@ -55,13 +55,16 @@ def _enc_varchar(v):
 
 
 def _enc_vector(v):
-    # numpy fast path: big-endian float32 memcpy, no per-element Python work.
+    # Wire format for the vector body is little-endian float32 — matches the
+    # server's on-disk vector representation on x86/ARM hosts, letting the
+    # decoder memcpy the bytes straight into the record. Length prefixes stay
+    # big-endian (rest-of-protocol convention).
     np = _numpy()
     if np is not None and isinstance(v, np.ndarray):
-        b = np.ascontiguousarray(v, dtype=">f4").tobytes()
+        b = np.ascontiguousarray(v, dtype="<f4").tobytes()
         return struct.pack("!ii", 4 + len(b), len(v)) + b
     n = len(v)
-    body = struct.pack(f"!i{n}f", n, *v)
+    body = struct.pack(f"!i", n) + struct.pack(f"<{n}f", *v)
     return struct.pack("!i", len(body)) + body
 
 
